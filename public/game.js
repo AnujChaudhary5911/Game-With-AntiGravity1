@@ -79,7 +79,7 @@ function joinRoom() {
   socket.emit('join_room', { code, name });
 }
 function startGame() { socket.emit('start_game'); }
-function reload() { socket.emit('ammo_reload'); }
+function reload() { socket.emit('ammo_reload'); if(typeof playReload==='function') playReload(); }
 function setMsg(id, txt) { const el = document.getElementById(id); if (el) el.textContent = txt; }
 
 // ─── SOCKET EVENTS ────────────────────────────────────────────────────────────
@@ -123,13 +123,13 @@ socket.on('player_moved', ({ id, x, y, vx, vy, angle, grounded, jetpack }) => {
 socket.on('bullet_fired', b => { bullets[b.id] = { ...b }; });
 socket.on('player_hit', ({ targetId, hp }) => {
   if (players[targetId]) players[targetId].hp = hp;
-  if (targetId === myId && localPlayer) { localPlayer.hp = hp; updateHUD(); }
+  if (targetId === myId && localPlayer) { localPlayer.hp = hp; updateHUD(); if(typeof playHit==='function') playHit(); }
 });
 socket.on('player_killed', ({ targetId, killerId }) => {
   const killer = players[killerId], victim = players[targetId];
   if (players[targetId]) players[targetId].alive = false;
   if (killer && victim) showKillFeed(killer.name + ' killed ' + victim.name);
-  if (targetId === myId) showDeathScreen();
+  if (targetId === myId) { showDeathScreen(); if(typeof playDeath==='function') playDeath(); }
 });
 socket.on('player_respawned', p => {
   players[p.id] = { ...players[p.id], ...p };
@@ -179,47 +179,80 @@ function showDeathScreen() {
 }
 function hideDeathScreen() { document.getElementById('deathScreen').classList.add('hidden'); }
 
-// ─── MAPS ────────────────────────────────────────────────────────────────────
+const W=2200, H=700;
 const MAPS = {
   jungle: {
-    bg: ['#0a1a0f', '#1a3d2b'],
-    platforms: [
-      { x: 0, y: 520, w: 200, h: 20, c: '#2d6a4f' },{ x: 220, y: 440, w: 160, h: 20, c: '#2d6a4f' },
-      { x: 450, y: 370, w: 200, h: 20, c: '#2d6a4f' },{ x: 700, y: 440, w: 160, h: 20, c: '#2d6a4f' },
-      { x: 900, y: 520, w: 200, h: 20, c: '#2d6a4f' },{ x: 100, y: 300, w: 140, h: 20, c: '#40916c' },
-      { x: 550, y: 240, w: 180, h: 20, c: '#40916c' },{ x: 800, y: 300, w: 140, h: 20, c: '#40916c' },
-      { x: 350, y: 160, w: 160, h: 20, c: '#52b788' },{ x: 0, y: 560, w: 1100, h: 40, c: '#1b4332' }
+    bg:['#0a1a0f','#1a3d2b'],
+    platforms:[
+      {x:0,y:660,w:W,h:40,c:'#1b4332'},
+      {x:0,y:520,w:220,h:20,c:'#2d6a4f'},{x:280,y:460,w:180,h:20,c:'#2d6a4f'},
+      {x:520,y:400,w:200,h:20,c:'#2d6a4f'},{x:780,y:460,w:180,h:20,c:'#2d6a4f'},
+      {x:1020,y:520,w:200,h:20,c:'#2d6a4f'},{x:1280,y:440,w:180,h:20,c:'#40916c'},
+      {x:1520,y:380,w:200,h:20,c:'#40916c'},{x:1780,y:460,w:200,h:20,c:'#2d6a4f'},
+      {x:2000,y:540,w:200,h:20,c:'#2d6a4f'},
+      {x:100,y:340,w:150,h:20,c:'#40916c'},{x:400,y:280,w:160,h:20,c:'#40916c'},
+      {x:700,y:300,w:140,h:20,c:'#52b788'},{x:1000,y:340,w:160,h:20,c:'#52b788'},
+      {x:1300,y:280,w:180,h:20,c:'#52b788'},{x:1600,y:240,w:160,h:20,c:'#52b788'},
+      {x:1900,y:320,w:140,h:20,c:'#40916c'},
+      {x:250,y:180,w:140,h:20,c:'#52b788'},{x:600,y:160,w:180,h:20,c:'#52b788'},
+      {x:950,y:190,w:160,h:20,c:'#52b788'},{x:1400,y:140,w:200,h:20,c:'#52b788'},
+      {x:1750,y:170,w:140,h:20,c:'#52b788'},
+      {x:0,y:0,w:10,h:H,c:'#1b4332'},{x:W-10,y:0,w:10,h:H,c:'#1b4332'}
     ]
   },
   space: {
-    bg: ['#020010', '#0a0520'],
-    platforms: [
-      { x: 0, y: 530, w: 180, h: 18, c: '#4a1d96' },{ x: 240, y: 460, w: 140, h: 18, c: '#5b21b6' },
-      { x: 450, y: 380, w: 200, h: 18, c: '#6d28d9' },{ x: 720, y: 460, w: 140, h: 18, c: '#5b21b6' },
-      { x: 920, y: 530, w: 180, h: 18, c: '#4a1d96' },{ x: 80, y: 310, w: 150, h: 18, c: '#7c3aed' },
-      { x: 560, y: 250, w: 160, h: 18, c: '#7c3aed' },{ x: 830, y: 310, w: 150, h: 18, c: '#7c3aed' },
-      { x: 330, y: 170, w: 200, h: 18, c: '#8b5cf6' },{ x: 0, y: 560, w: 1100, h: 40, c: '#2e1065' }
-    ],
-    stars: true
+    bg:['#020010','#0a0520'], stars:true,
+    platforms:[
+      {x:0,y:660,w:W,h:40,c:'#2e1065'},
+      {x:0,y:530,w:200,h:18,c:'#4a1d96'},{x:260,y:460,w:160,h:18,c:'#5b21b6'},
+      {x:480,y:390,w:200,h:18,c:'#6d28d9'},{x:740,y:460,w:160,h:18,c:'#5b21b6'},
+      {x:960,y:530,w:200,h:18,c:'#4a1d96'},{x:1220,y:460,w:180,h:18,c:'#5b21b6'},
+      {x:1460,y:390,w:200,h:18,c:'#6d28d9'},{x:1720,y:460,w:180,h:18,c:'#5b21b6'},
+      {x:1960,y:530,w:200,h:18,c:'#4a1d96'},
+      {x:80,y:340,w:160,h:18,c:'#7c3aed'},{x:400,y:280,w:160,h:18,c:'#7c3aed'},
+      {x:700,y:310,w:160,h:18,c:'#7c3aed'},{x:1000,y:280,w:180,h:18,c:'#7c3aed'},
+      {x:1300,y:340,w:160,h:18,c:'#7c3aed'},{x:1600,y:260,w:180,h:18,c:'#8b5cf6'},
+      {x:1900,y:300,w:160,h:18,c:'#7c3aed'},
+      {x:250,y:180,w:140,h:18,c:'#8b5cf6'},{x:600,y:150,w:200,h:18,c:'#8b5cf6'},
+      {x:950,y:170,w:160,h:18,c:'#8b5cf6'},{x:1400,y:140,w:200,h:18,c:'#a78bfa'},
+      {x:1750,y:160,w:160,h:18,c:'#8b5cf6'},
+      {x:0,y:0,w:10,h:H,c:'#2e1065'},{x:W-10,y:0,w:10,h:H,c:'#2e1065'}
+    ]
   },
   lava: {
-    bg: ['#1a0400', '#3d0900'],
-    platforms: [
-      { x: 0, y: 510, w: 190, h: 20, c: '#78350f' },{ x: 230, y: 440, w: 150, h: 20, c: '#92400e' },
-      { x: 440, y: 360, w: 210, h: 20, c: '#b45309' },{ x: 710, y: 440, w: 150, h: 20, c: '#92400e' },
-      { x: 910, y: 510, w: 190, h: 20, c: '#78350f' },{ x: 90, y: 300, w: 140, h: 20, c: '#d97706' },
-      { x: 560, y: 240, w: 170, h: 20, c: '#f59e0b' },{ x: 820, y: 300, w: 140, h: 20, c: '#d97706' },
-      { x: 340, y: 160, w: 160, h: 20, c: '#fbbf24' },{ x: 0, y: 555, w: 1100, h: 45, c: '#450a00' }
+    bg:['#1a0400','#3d0900'],
+    platforms:[
+      {x:0,y:660,w:W,h:40,c:'#450a00'},
+      {x:0,y:520,w:200,h:20,c:'#78350f'},{x:260,y:450,w:170,h:20,c:'#92400e'},
+      {x:490,y:380,w:210,h:20,c:'#b45309'},{x:760,y:450,w:170,h:20,c:'#92400e'},
+      {x:990,y:520,w:200,h:20,c:'#78350f'},{x:1250,y:440,w:180,h:20,c:'#92400e'},
+      {x:1490,y:370,w:210,h:20,c:'#b45309'},{x:1760,y:450,w:180,h:20,c:'#92400e'},
+      {x:2000,y:530,w:200,h:20,c:'#78350f'},
+      {x:100,y:330,w:150,h:20,c:'#d97706'},{x:400,y:270,w:170,h:20,c:'#f59e0b'},
+      {x:700,y:300,w:150,h:20,c:'#d97706'},{x:1050,y:340,w:170,h:20,c:'#d97706'},
+      {x:1350,y:270,w:180,h:20,c:'#f59e0b'},{x:1650,y:240,w:170,h:20,c:'#fbbf24'},
+      {x:1950,y:300,w:150,h:20,c:'#d97706'},
+      {x:250,y:180,w:140,h:20,c:'#fbbf24'},{x:600,y:150,w:200,h:20,c:'#fbbf24'},
+      {x:1000,y:180,w:160,h:20,c:'#fbbf24'},{x:1500,y:130,w:200,h:20,c:'#fbbf24'},
+      {x:0,y:0,w:10,h:H,c:'#450a00'},{x:W-10,y:0,w:10,h:H,c:'#450a00'}
     ]
   },
   ice: {
-    bg: ['#0c1e2e', '#0f3460'],
-    platforms: [
-      { x: 0, y: 520, w: 200, h: 20, c: '#93c5fd' },{ x: 230, y: 450, w: 150, h: 20, c: '#bfdbfe' },
-      { x: 450, y: 370, w: 200, h: 20, c: '#dbeafe' },{ x: 710, y: 450, w: 150, h: 20, c: '#bfdbfe' },
-      { x: 920, y: 520, w: 200, h: 20, c: '#93c5fd' },{ x: 100, y: 310, w: 140, h: 20, c: '#60a5fa' },
-      { x: 560, y: 250, w: 170, h: 20, c: '#60a5fa' },{ x: 820, y: 310, w: 140, h: 20, c: '#60a5fa' },
-      { x: 340, y: 170, w: 180, h: 20, c: '#3b82f6' },{ x: 0, y: 560, w: 1100, h: 40, c: '#1e3a5f' }
+    bg:['#0c1e2e','#0f3460'],
+    platforms:[
+      {x:0,y:660,w:W,h:40,c:'#1e3a5f'},
+      {x:0,y:520,w:220,h:20,c:'#93c5fd'},{x:280,y:460,w:160,h:20,c:'#bfdbfe'},
+      {x:500,y:390,w:200,h:20,c:'#dbeafe'},{x:760,y:460,w:160,h:20,c:'#bfdbfe'},
+      {x:980,y:520,w:220,h:20,c:'#93c5fd'},{x:1260,y:450,w:180,h:20,c:'#bfdbfe'},
+      {x:1500,y:380,w:200,h:20,c:'#dbeafe'},{x:1760,y:460,w:180,h:20,c:'#bfdbfe'},
+      {x:2000,y:530,w:200,h:20,c:'#93c5fd'},
+      {x:100,y:340,w:150,h:20,c:'#60a5fa'},{x:400,y:280,w:170,h:20,c:'#60a5fa'},
+      {x:720,y:310,w:150,h:20,c:'#60a5fa'},{x:1050,y:340,w:160,h:20,c:'#60a5fa'},
+      {x:1350,y:280,w:180,h:20,c:'#3b82f6'},{x:1650,y:250,w:170,h:20,c:'#3b82f6'},
+      {x:1950,y:310,w:150,h:20,c:'#60a5fa'},
+      {x:250,y:180,w:140,h:20,c:'#3b82f6'},{x:600,y:150,w:200,h:20,c:'#3b82f6'},
+      {x:1000,y:180,w:160,h:20,c:'#3b82f6'},{x:1450,y:130,w:200,h:20,c:'#2563eb'},
+      {x:0,y:0,w:10,h:H,c:'#1e3a5f'},{x:W-10,y:0,w:10,h:H,c:'#1e3a5f'}
     ]
   }
 };
@@ -235,7 +268,7 @@ function initGame() {
   map = MAPS[myMapId] || MAPS.jungle;
   stars = [];
   if (map.stars) {
-    for (let i = 0; i < 120; i++) stars.push({ x: Math.random()*1100, y: Math.random()*600, r: Math.random()*1.5+0.3 });
+    for (let i = 0; i < 300; i++) stars.push({ x: Math.random()*W, y: Math.random()*H, r: Math.random()*1.5+0.3 });
   }
   requestAnimationFrame(gameLoop);
 }
@@ -256,6 +289,7 @@ function mobileShoot() {
   localPlayer.ammo--;
   updateHUD();
   socket.emit('shoot', { x: px, y: py, vx: (dx/dist)*14, vy: (dy/dist)*14 });
+  if(typeof playShoot==='function') playShoot();
 }
 
 // ─── PHYSICS ─────────────────────────────────────────────────────────────────
@@ -267,7 +301,7 @@ function updatePlayer() {
   if (keys.left)  { p.vx -= 0.7; if (p.vx < -SPEED) p.vx = -SPEED; }
   else if (keys.right) { p.vx += 0.7; if (p.vx > SPEED) p.vx = SPEED; }
   else { p.vx *= 0.8; }
-  if (keys.up && p.grounded) { p.vy = JUMP; p.grounded = false; }
+  if (keys.up && p.grounded) { p.vy = JUMP; p.grounded = false; if(typeof playJump==='function') playJump(); }
   if (keys.jet && p.jetpack > 0) { p.vy += JET_POWER; p.jetpack = Math.max(0, p.jetpack - 1.5); }
   else if (!keys.jet) { p.jetpack = Math.min(100, p.jetpack + 0.5); }
   p.vy += GRAVITY;
@@ -279,9 +313,9 @@ function updatePlayer() {
       p.y = pl.y - 32; p.vy = 0; p.grounded = true;
     }
   }
-  if (p.x < 0) p.x = 0;
-  if (p.x > 1068) p.x = 1068;
-  if (p.y > 650) { p.y = 100; p.vy = 0; }
+  if (p.x < 10) p.x = 10;
+  if (p.x > W - 42) p.x = W - 42;
+  if (p.y > H) { p.y = 100; p.vy = 0; }
 
   // Bullet hit detection
   for (const bid in bullets) {
@@ -308,8 +342,8 @@ function updatePlayer() {
 // ─── CAMERA ──────────────────────────────────────────────────────────────────
 function updateCamera() {
   if (!localPlayer) return;
-  camX = Math.max(0, Math.min(localPlayer.x - canvas.width/2 + 16, 1100 - canvas.width));
-  camY = Math.max(0, Math.min(localPlayer.y - canvas.height/2 + 16, 600 - canvas.height));
+  camX = Math.max(0, Math.min(localPlayer.x - canvas.width/2 + 16, W - canvas.width));
+  camY = Math.max(0, Math.min(localPlayer.y - canvas.height/2 + 16, H - canvas.height));
 }
 
 // ─── DRAW ─────────────────────────────────────────────────────────────────────
@@ -374,11 +408,19 @@ function drawPlayers() {
   }
 }
 
+function bulletHitsWall(b) {
+  if (!map) return false;
+  for (const pl of map.platforms) {
+    if (b.x > pl.x && b.x < pl.x + pl.w && b.y > pl.y && b.y < pl.y + pl.h) return true;
+  }
+  return false;
+}
+
 function drawBullets() {
   for (const bid in bullets) {
     const b = bullets[bid];
     b.x += b.vx; b.y += b.vy; b.life--;
-    if (b.life <= 0) { delete bullets[bid]; continue; }
+    if (b.life <= 0 || bulletHitsWall(b)) { delete bullets[bid]; continue; }
     const bx = b.x - camX, by = b.y - camY;
     ctx.save();
     ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 10;

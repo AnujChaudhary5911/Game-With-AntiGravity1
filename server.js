@@ -47,7 +47,7 @@ io.on('connection', (socket) => {
       bulletCounter: 0
     };
     const color = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
-    rooms[code].players[socket.id] = createPlayer(socket.id, name, 200, 300, color);
+    rooms[code].players[socket.id] = createPlayer(socket.id, name, 200, 500, color);
     socket.join(code);
     socket.roomCode = code;
     socket.emit('room_created', { code, mapId, player: rooms[code].players[socket.id], players: rooms[code].players });
@@ -59,8 +59,8 @@ io.on('connection', (socket) => {
     if (rooms[code].started) return socket.emit('error', 'Game already started!');
     if (Object.keys(rooms[code].players).length >= 6) return socket.emit('error', 'Room full!');
     const color = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
-    const spawnX = 200 + Object.keys(rooms[code].players).length * 120;
-    rooms[code].players[socket.id] = createPlayer(socket.id, name, spawnX, 300, color);
+    const spawnX = 200 + Object.keys(rooms[code].players).length * 200;
+    rooms[code].players[socket.id] = createPlayer(socket.id, name, spawnX, 500, color);
     socket.join(code);
     socket.roomCode = code;
     socket.emit('room_joined', { code, mapId: rooms[code].mapId, player: rooms[code].players[socket.id], players: rooms[code].players });
@@ -116,8 +116,8 @@ io.on('connection', (socket) => {
           rooms[code].players[targetId].hp = 100;
           rooms[code].players[targetId].alive = true;
           rooms[code].players[targetId].ammo = 30;
-          rooms[code].players[targetId].x = 200 + Math.random()*400;
-          rooms[code].players[targetId].y = 200;
+          rooms[code].players[targetId].x = 200 + Math.random()*1800;
+          rooms[code].players[targetId].y = 400;
           io.to(code).emit('player_respawned', rooms[code].players[targetId]);
         }
       }, 3000);
