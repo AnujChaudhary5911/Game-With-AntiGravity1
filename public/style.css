@@ -1,0 +1,91 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { background: #0a0a1a; font-family: 'Rajdhani', sans-serif; overflow: hidden; color: #fff; }
+
+/* SCREENS */
+.screen { position: fixed; inset: 0; display: none; }
+.screen.active { display: flex; }
+
+/* LOBBY */
+#lobby { justify-content: center; align-items: center; background: radial-gradient(ellipse at center, #0d1b3e 0%, #050510 100%); }
+.lobby-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.particle { position: absolute; border-radius: 50%; opacity: .5; animation: float 8s infinite ease-in-out; }
+#p1 { width: 300px; height: 300px; background: radial-gradient(#7c3aed55, transparent); top: -100px; left: -100px; animation-delay: 0s; }
+#p2 { width: 400px; height: 400px; background: radial-gradient(#06b6d455, transparent); bottom: -150px; right: -100px; animation-delay: -3s; }
+#p3 { width: 250px; height: 250px; background: radial-gradient(#ec489955, transparent); top: 40%; left: 50%; animation-delay: -5s; }
+@keyframes float { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-30px) scale(1.1); } }
+
+.lobby-center { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 2rem; }
+.logo-wrap { text-align: center; }
+.logo { font-family: 'Orbitron', monospace; font-size: clamp(2rem, 6vw, 4rem); font-weight: 900; background: linear-gradient(135deg, #7c3aed, #06b6d4, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: none; letter-spacing: 4px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.3)} }
+.logo-sub { font-family: 'Orbitron', monospace; font-size: .9rem; color: #06b6d4; letter-spacing: 8px; margin-top: 4px; }
+
+.card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(20px); border-radius: 20px; padding: 2.5rem 2rem; width: min(420px, 92vw); display: flex; flex-direction: column; gap: 1.2rem; box-shadow: 0 25px 60px rgba(0,0,0,.5); }
+.inp { background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.2); border-radius: 10px; color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; padding: .8rem 1.2rem; outline: none; transition: border-color .3s, box-shadow .3s; width: 100%; }
+.inp:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.25); }
+.inp::placeholder { color: #aaa; }
+.btn-row { display: flex; gap: .8rem; }
+.btn { border: none; border-radius: 10px; cursor: pointer; font-family: 'Orbitron', monospace; font-size: .85rem; font-weight: 700; letter-spacing: 1px; padding: .9rem 1.2rem; flex: 1; transition: transform .15s, box-shadow .15s; }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+.btn:active { transform: scale(.97); }
+.btn-create { background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff; }
+.btn-join { background: linear-gradient(135deg, #06b6d4, #0891b2); color: #fff; }
+.btn-go { background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; width: 100%; margin-top: .4rem; }
+.btn-start { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; font-size: 1rem; padding: 1rem 2.5rem; border-radius: 12px; }
+.join-box { display: flex; flex-direction: column; gap: .6rem; }
+.hidden { display: none !important; }
+.msg { color: #f87171; font-size: .95rem; text-align: center; min-height: 1.2rem; }
+
+/* WAITING ROOM */
+#waiting { justify-content: center; align-items: center; background: radial-gradient(ellipse at top, #0f2744 0%, #05080f 100%); }
+.wait-bg { position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='%23ffffff10'/%3E%3C/svg%3E"); }
+.wait-center { position: relative; z-index: 1; width: min(500px, 95vw); display: flex; flex-direction: column; gap: 1.5rem; align-items: center; }
+.wait-title { font-family: 'Orbitron', monospace; font-size: 1.8rem; background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.room-code-display { display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); border-radius: 14px; padding: 1rem 1.5rem; width: 100%; }
+.rc-label { font-size: .75rem; color: #aaa; letter-spacing: 3px; }
+.rc-code { font-family: 'Orbitron', monospace; font-size: 2rem; font-weight: 900; color: #fbbf24; letter-spacing: 6px; flex: 1; text-align: center; }
+.btn-copy { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: #fff; border-radius: 8px; padding: .5rem 1rem; cursor: pointer; font-size: .85rem; transition: background .2s; }
+.btn-copy:hover { background: rgba(255,255,255,.2); }
+.map-info { font-size: 1.1rem; color: #06b6d4; letter-spacing: 2px; }
+.player-list { width: 100%; background: rgba(0,0,0,.3); border-radius: 12px; padding: 1rem; min-height: 120px; border: 1px solid rgba(255,255,255,.08); }
+.player-item { display: flex; align-items: center; gap: .8rem; padding: .5rem; border-radius: 8px; margin-bottom: .4rem; background: rgba(255,255,255,.05); }
+.player-dot { width: 12px; height: 12px; border-radius: 50%; }
+.hint { color: #aaa; font-size: .9rem; }
+
+/* GAME SCREEN */
+#gameScreen { background: #000; }
+#gameCanvas { display: block; width: 100%; height: 100%; }
+
+/* HUD */
+#hud { position: fixed; top: 0; left: 0; right: 0; padding: .6rem 1rem; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 10; }
+.hud-left, .hud-right { display: flex; flex-direction: column; gap: .4rem; }
+.hud-label { font-size: .65rem; color: #aaa; letter-spacing: 2px; margin-bottom: 2px; }
+.hp-bar-wrap, .jp-bar-wrap { display: flex; align-items: center; gap: .5rem; }
+.hp-bar, .jp-bar { width: 120px; height: 10px; background: rgba(255,255,255,.15); border-radius: 6px; overflow: hidden; }
+#hpFill { height: 100%; width: 100%; background: linear-gradient(90deg, #22c55e, #86efac); border-radius: 6px; transition: width .3s; }
+#jpFill { height: 100%; width: 100%; background: linear-gradient(90deg, #3b82f6, #93c5fd); border-radius: 6px; transition: width .3s; }
+#hpText { font-size: .85rem; color: #fff; }
+.ammo-display, .score-display { font-family: 'Orbitron', monospace; font-size: 1rem; color: #fbbf24; }
+.hud-center { flex: 1; display: flex; justify-content: center; align-items: flex-start; }
+#killFeed { font-family: 'Orbitron', monospace; font-size: .75rem; color: #f87171; text-align: center; text-shadow: 0 0 10px #ef4444; }
+
+/* MOBILE CONTROLS */
+#mobileControls { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; padding: 1rem; pointer-events: none; z-index: 10; }
+.ctrl-left, .ctrl-right { pointer-events: all; }
+.dpad { display: grid; grid-template-columns: repeat(3, 56px); grid-template-rows: repeat(2, 56px); gap: 4px; }
+.dpad-btn { background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.25); border-radius: 12px; color: #fff; font-size: 1.2rem; cursor: pointer; backdrop-filter: blur(8px); touch-action: none; user-select: none; }
+#btnLeft { grid-column: 1; grid-row: 2; }
+#btnJump { grid-column: 2; grid-row: 1; }
+#btnRight { grid-column: 3; grid-row: 2; }
+.ctrl-right { display: flex; gap: .6rem; align-items: flex-end; }
+.action-btn { width: 62px; height: 62px; border-radius: 50%; border: 2px solid rgba(255,255,255,.3); background: rgba(0,0,0,.4); color: #fff; font-size: 1.4rem; cursor: pointer; backdrop-filter: blur(8px); touch-action: none; display: flex; align-items: center; justify-content: center; user-select: none; }
+.shoot-btn { background: rgba(239,68,68,.4); border-color: #ef4444; width: 72px; height: 72px; font-size: 1.6rem; }
+.jet-btn { background: rgba(59,130,246,.4); border-color: #3b82f6; }
+
+/* OVERLAYS */
+.overlay-dark { position: fixed; inset: 0; background: rgba(0,0,0,.8); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; gap: 1rem; }
+.overlay-dark h2 { font-family: 'Orbitron', monospace; font-size: 3rem; color: #ef4444; text-shadow: 0 0 30px #ef4444; }
+.overlay-dark p { font-size: 1.3rem; color: #ccc; }
+
+@media (min-width: 768px) { #mobileControls { display: none; } }
