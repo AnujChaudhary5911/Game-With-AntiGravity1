@@ -5,9 +5,18 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
+const io = new Server(server, {
+  cors: { origin: '*', methods: ['GET', 'POST'] },
+  transports: ['websocket', 'polling'],
+  allowEIO3: true
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Catch-all: serve index.html for any unknown route (prevents 404 on refresh)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 const rooms = {};
 const MAPS = ['jungle', 'space', 'lava', 'ice'];
@@ -132,4 +141,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => console.log(`BattleZone server running on port ${PORT}`));
+server.listen(PORT, '0.0.0.0', () => console.log(`BattleZone server running on port ${PORT}`));

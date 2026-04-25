@@ -7,7 +7,11 @@
 <meta name="description" content="Mini Militia style 2D multiplayer shooter with room codes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<style>
+  /* Fallback fonts if Google Fonts fails */
+  @font-face { font-family: 'Orbitron'; src: local('Arial'); }
+</style>
+<link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
@@ -20,20 +24,21 @@
   </div>
   <div class="lobby-center">
     <div class="logo-wrap">
-      <h1 class="logo">⚔️ BATTLEZONE 2D</h1>
+      <h1 class="logo">&#9876; BATTLEZONE 2D</h1>
       <p class="logo-sub">MULTIPLAYER SHOOTER</p>
     </div>
     <div class="card">
       <input id="playerName" class="inp" type="text" placeholder="Enter your name..." maxlength="16">
       <div class="btn-row">
-        <button class="btn btn-create" onclick="createRoom()">🏠 Create Room</button>
-        <button class="btn btn-join" onclick="showJoin()">🔗 Join Room</button>
+        <button class="btn btn-create" id="btnCreate" onclick="createRoom()">&#127968; Create Room</button>
+        <button class="btn btn-join" id="btnJoin" onclick="showJoin()">&#128279; Join Room</button>
       </div>
       <div id="joinBox" class="join-box hidden">
         <input id="roomCodeInput" class="inp" type="text" placeholder="Enter Room Code..." maxlength="6" style="text-transform:uppercase">
-        <button class="btn btn-go" onclick="joinRoom()">▶ JOIN</button>
+        <button class="btn btn-go" id="btnGo" onclick="joinRoom()">&#9654; JOIN</button>
       </div>
       <p id="lobbyMsg" class="msg"></p>
+      <p id="connStatus" class="conn-status">&#9679; Connecting...</p>
     </div>
   </div>
 </div>
@@ -42,17 +47,17 @@
 <div id="waiting" class="screen">
   <div class="wait-bg"></div>
   <div class="wait-center">
-    <h2 class="wait-title">🎮 WAITING ROOM</h2>
+    <h2 class="wait-title">&#127918; WAITING ROOM</h2>
     <div class="room-code-display">
       <span class="rc-label">ROOM CODE</span>
       <span id="displayCode" class="rc-code">------</span>
-      <button class="btn-copy" onclick="copyCode()">📋 Copy</button>
+      <button class="btn-copy" onclick="copyCode()">&#128203; Copy</button>
     </div>
-    <div class="map-info">🗺️ Map: <span id="mapName">--</span></div>
+    <div class="map-info">&#128506; Map: <span id="mapName">--</span></div>
     <div id="playerList" class="player-list"></div>
     <div id="hostControls" class="hidden">
-      <button class="btn btn-start" onclick="startGame()">🚀 START GAME</button>
-      <p class="hint">You are the host. Share the room code!</p>
+      <button class="btn btn-start" id="btnStart" onclick="startGame()">&#128640; START GAME</button>
+      <p class="hint">You are the host. Share the room code with friends!</p>
     </div>
     <p id="waitMsg" class="msg"></p>
   </div>
@@ -64,40 +69,45 @@
   <!-- HUD -->
   <div id="hud">
     <div class="hud-left">
-      <div class="hp-bar-wrap"><div class="hud-label">HP</div><div class="hp-bar"><div id="hpFill"></div></div><span id="hpText">100</span></div>
-      <div class="jp-bar-wrap"><div class="hud-label">JP</div><div class="jp-bar"><div id="jpFill"></div></div></div>
+      <div class="hp-bar-wrap">
+        <div class="hud-label">HP</div>
+        <div class="hp-bar"><div id="hpFill"></div></div>
+        <span id="hpText">100</span>
+      </div>
+      <div class="jp-bar-wrap">
+        <div class="hud-label">JP</div>
+        <div class="jp-bar"><div id="jpFill"></div></div>
+      </div>
     </div>
-    <div class="hud-center">
-      <span id="killFeed"></span>
-    </div>
+    <div class="hud-center"><span id="killFeed"></span></div>
     <div class="hud-right">
-      <div class="ammo-display">🔫 <span id="ammoCount">30</span></div>
-      <div class="score-display">💀 <span id="killCount">0</span></div>
+      <div class="ammo-display">&#128299; <span id="ammoCount">30</span></div>
+      <div class="score-display">&#128128; <span id="killCount">0</span></div>
     </div>
   </div>
   <!-- MOBILE CONTROLS -->
   <div id="mobileControls">
     <div class="ctrl-left">
       <div class="dpad">
-        <button class="dpad-btn" id="btnLeft" ontouchstart="keys.left=true" ontouchend="keys.left=false">◀</button>
-        <button class="dpad-btn" id="btnJump" ontouchstart="keys.up=true" ontouchend="keys.up=false">▲</button>
-        <button class="dpad-btn" id="btnRight" ontouchstart="keys.right=true" ontouchend="keys.right=false">▶</button>
+        <button class="dpad-btn" id="btnLeft" ontouchstart="keys.left=true" ontouchend="keys.left=false">&#9664;</button>
+        <button class="dpad-btn" id="btnJump" ontouchstart="keys.up=true" ontouchend="keys.up=false">&#9650;</button>
+        <button class="dpad-btn" id="btnRight" ontouchstart="keys.right=true" ontouchend="keys.right=false">&#9654;</button>
       </div>
     </div>
     <div class="ctrl-right">
-      <button class="action-btn shoot-btn" id="btnShoot" ontouchstart="mobileShoot()">🔫</button>
-      <button class="action-btn reload-btn" id="btnReload" ontouchstart="reload()">🔄</button>
-      <button class="action-btn jet-btn" id="btnJet" ontouchstart="keys.jet=true" ontouchend="keys.jet=false">🚀</button>
+      <button class="action-btn shoot-btn" id="btnShoot" ontouchstart="mobileShoot()">&#128299;</button>
+      <button class="action-btn reload-btn" id="btnReload" ontouchstart="reload()">&#128260;</button>
+      <button class="action-btn jet-btn" id="btnJet" ontouchstart="keys.jet=true" ontouchend="keys.jet=false">&#128640;</button>
     </div>
   </div>
   <!-- DEATH SCREEN -->
   <div id="deathScreen" class="hidden overlay-dark">
-    <h2>💀 YOU DIED</h2>
+    <h2>&#128128; YOU DIED</h2>
     <p>Respawning in <span id="respawnTimer">3</span>s...</p>
   </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script src="game.js"></script>
+<script src="/game.js"></script>
 </body>
 </html>

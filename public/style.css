@@ -89,3 +89,4 @@ body { background: #0a0a1a; font-family: 'Rajdhani', sans-serif; overflow: hidde
 .overlay-dark p { font-size: 1.3rem; color: #ccc; }
 
 @media (min-width: 768px) { #mobileControls { display: none; } }
+.conn-status { font-size: .8rem; color: #eab308; text-align: center; letter-spacing: 1px; }
